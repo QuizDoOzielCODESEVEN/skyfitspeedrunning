@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkyFit Speedrunning</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <span>⚡</span>
+    <span>SkyFit Speedrunning</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="active">Rankings</a>
+    <a href="forum.html">Fórum</a>
+    <a href="https://discord.gg/DfZY2ct8Tx" target="_blank" class="discord-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.033.055a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
+      </svg>
+      Discord
+    </a>
+    <div id="nav-auth" style="display:flex;gap:0.5rem;align-items:center"></div>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>SkyFit Speedrunning</h1>
+  <p>Rankings oficiais da comunidade de speedrun da academia SkyFit</p>
+  <div style="max-width:480px;margin:0 auto 2rem;position:relative">
+    <input id="pesquisa" type="text" placeholder="🔍 Pesquisar aparelho..." oninput="pesquisar(this.value)"
+      style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0.75rem 1rem;color:var(--text);font-size:1rem;outline:none;transition:border-color 0.2s"
+      onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+    <div id="pesquisa-resultados" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;z-index:200"></div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-box">
+      <div class="num" id="total-runs">—</div>
+      <div class="label">Runs Submetidas</div>
+    </div>
+    <div class="stat-box">
+      <div class="num" id="total-aparelhos">—</div>
+      <div class="label">Aparelhos/Atividades</div>
+    </div>
+    <div class="stat-box">
+      <div class="num" id="total-runners">—</div>
+      <div class="label">Runners Ativos</div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <section>
+    <div class="section-title">🏆 Aparelhos & Atividades</div>
+    <div class="aparelhos-grid" id="aparelhos-grid"></div>
+  </section>
+
+  <section>
+    <div class="section-title">🥇 WR Recentes</div>
+    <div id="wr-recentes"></div>
+  </section>
+</main>
+
+<footer>
+  <p>© 2025 <strong>Super Fun Guy Studios</strong> & <strong>SkyFit Speedrunning</strong> — Todos os direitos reservados</p>
+  <p style="margin-top:6px">
+    <a href="https://discord.gg/DfZY2ct8Tx" target="_blank">Discord da Comunidade</a>
+  </p>
+</footer>
+
+<script src="auth.js"></script>
+<script src="script.js"></script>
+<script>
+  renderNav();
+
+  function pesquisar(q) {
+    const res = document.getElementById("pesquisa-resultados");
+    if (!q.trim()) { res.style.display = "none"; return; }
+    const filtrados = aparelhos.filter(a =>
+      a.nome.toLowerCase().includes(q.toLowerCase()) ||
+      a.categorias.some(c => c.toLowerCase().includes(q.toLowerCase()))
+    );
+    if (!filtrados.length) {
+      res.innerHTML = `<div style="padding:0.8rem 1rem;color:var(--muted);font-size:0.9rem">Nenhum resultado encontrado.</div>`;
+    } else {
+      res.innerHTML = filtrados.map(a => `
+        <a href="aparelhos/${a.id}.html" style="display:flex;align-items:center;gap:10px;padding:0.75rem 1rem;color:var(--text);text-decoration:none;border-bottom:1px solid var(--border);transition:background 0.15s"
+          onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+          <span style="font-size:1.4rem">${a.icon}</span>
+          <div>
+            <div style="font-weight:600;font-size:0.95rem">${a.nome}</div>
+            <div style="font-size:0.75rem;color:var(--muted)">${a.categorias.join(" · ")}</div>
+          </div>
+        </a>
+      `).join("");
+    }
+    res.style.display = "block";
+  }
+
+  document.addEventListener("click", e => {
+    if (!e.target.closest("#pesquisa") && !e.target.closest("#pesquisa-resultados"))
+      document.getElementById("pesquisa-resultados").style.display = "none";
+  });
+
+  const grid = document.getElementById("aparelhos-grid");
+  aparelhos.forEach(a => {
+    const runs = getRunsAprovadasPorAparelho(a.id);
+    const wr = runs.length ? runs[0].tempo : "—";
+    grid.innerHTML += `
+      <a href="aparelhos/${a.id}.html" class="aparelho-card">
+        <span class="aparelho-icon">${a.icon}</span>
+        <span class="aparelho-name">${a.nome}</span>
+        <span class="aparelho-wr">WR: <span>${wr}</span> · ${runs.length} runs</span>
+      </a>
+    `;
+  });
+
+  const todasRuns = aparelhos.flatMap(a => getRunsAprovadasPorAparelho(a.id));
+  const allRunners = new Set(todasRuns.map(r => r.runner));
+  document.getElementById("total-runs").textContent = todasRuns.length;
+  document.getElementById("total-aparelhos").textContent = aparelhos.length;
+  document.getElementById("total-runners").textContent = allRunners.size;
+
+  const wrs = aparelhos.map(a => {
+    const runs = getRunsAprovadasPorAparelho(a.id);
+    if (!runs.length) return null;
+    return { aparelho: a.nome, icon: a.icon, ...runs[0], id: a.id };
+  }).filter(Boolean);
+
+  const wrDiv = document.getElementById("wr-recentes");
+  if (!wrs.length) {
+    wrDiv.innerHTML = `<p style="color:var(--muted)">Nenhuma run aprovada ainda.</p>`;
+  } else {
+    wrDiv.innerHTML = `
+      <div class="leaderboard">
+        <div class="lb-header" style="grid-template-columns: 50px 1fr 1fr 120px 120px">
+          <span>🏅</span><span>Aparelho</span><span>Runner</span><span>Tempo</span><span>Data</span>
+        </div>
+        ${wrs.map(w => `
+          <div class="lb-row" style="grid-template-columns: 50px 1fr 1fr 120px 120px">
+            <span style="font-size:1.3rem">${w.icon}</span>
+            <a href="aparelhos/${w.id}.html" style="color:var(--accent2);text-decoration:none;font-weight:500">${w.aparelho}</a>
+            <span class="runner-name">${w.runner}</span>
+            <span class="time">${w.tempo}</span>
+            <span class="date">${new Date(w.criadoEm).toLocaleDateString("pt-BR")}</span>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+</script>
+</body>
+</html>

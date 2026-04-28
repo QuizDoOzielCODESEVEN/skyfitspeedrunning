@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar — SkyFit Speedrunning</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .auth-wrap { min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    .auth-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; width: 100%; max-width: 400px; }
+    .auth-box h2 { font-size: 1.4rem; margin-bottom: 0.3rem; }
+    .auth-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 5px; }
+    .field input {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.65rem 0.9rem; color: var(--text); font-size: 0.95rem;
+      outline: none; transition: border-color 0.2s;
+    }
+    .field input:focus { border-color: var(--accent); }
+    .btn-primary {
+      width: 100%; background: var(--accent); color: #fff; border: none;
+      border-radius: 8px; padding: 0.75rem; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s; margin-top: 0.5rem;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+    .msg { font-size: 0.85rem; margin-top: 0.8rem; padding: 0.6rem 0.9rem; border-radius: 8px; display: none; }
+    .msg.erro { background: #2d1515; color: #f87171; border: 1px solid #7f1d1d; display: block; }
+    .auth-footer { text-align: center; margin-top: 1.2rem; font-size: 0.85rem; color: var(--muted); }
+    .auth-footer a { color: var(--accent2); text-decoration: none; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo"><span>⚡</span><span>SkyFit Speedrunning</span></a>
+  <div class="nav-links" id="nav-auth"></div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-box">
+    <h2>Entrar</h2>
+    <p>Acesse sua conta SkyFit Speedrunning</p>
+    <div class="field">
+      <label>Nome de usuário</label>
+      <input type="text" id="username" placeholder="Seu usuário" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="senha" placeholder="Sua senha">
+    </div>
+    <button class="btn-primary" onclick="fazerLogin()">Entrar</button>
+    <div class="msg" id="msg"></div>
+    <div class="auth-footer">Não tem conta? <a href="cadastro.html">Cadastrar</a></div>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>
+  if (getSessao()) location.href = "index.html";
+  renderNav();
+
+  function fazerLogin() {
+    const username = document.getElementById("username").value.trim();
+    const senha = document.getElementById("senha").value;
+    const msg = document.getElementById("msg");
+
+    const res = login(username, senha);
+    if (!res.ok) {
+      msg.textContent = res.msg;
+      msg.className = "msg erro";
+    } else {
+      location.href = res.role === "mod" ? "moderacao.html" : "index.html";
+    }
+  }
+
+  document.addEventListener("keydown", e => { if (e.key === "Enter") fazerLogin(); });
+</script>
+</body>
+</html>

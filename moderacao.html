@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moderação — SkyFit Speedrunning</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .mod-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .mod-tab { background: none; border: none; color: var(--muted); padding: 0.7rem 1.2rem; cursor: pointer; font-size: 0.9rem; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
+    .mod-tab:hover { color: var(--text); }
+    .mod-tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+    .mod-section { display: none; }
+    .mod-section.active { display: block; }
+
+    .run-card, .post-card-mod {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.2rem; margin-bottom: 1rem;
+    }
+    .run-card-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; }
+    .run-info { font-size: 0.9rem; color: var(--muted); margin-top: 0.4rem; line-height: 1.7; }
+    .run-info strong { color: var(--text); }
+    .run-actions { display: flex; gap: 0.5rem; margin-top: 0.8rem; }
+    .btn-aprovar {
+      background: #14532d; color: #4ade80; border: 1px solid #166534;
+      border-radius: 6px; padding: 5px 14px; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-aprovar:hover { background: #166534; }
+    .btn-rejeitar {
+      background: #2d1515; color: #f87171; border: 1px solid #7f1d1d;
+      border-radius: 6px; padding: 5px 14px; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-rejeitar:hover { background: #7f1d1d; }
+    .btn-delete-mod {
+      background: #2d1515; color: #f87171; border: 1px solid #7f1d1d;
+      border-radius: 6px; padding: 5px 14px; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-delete-mod:hover { background: #7f1d1d; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .badge-pendente { background: #451a03; color: #fb923c; }
+    .badge-aprovada { background: #14532d; color: #4ade80; }
+    .empty-state { color: var(--muted); text-align: center; padding: 3rem; }
+    .post-meta-mod { font-size: 0.8rem; color: var(--muted); margin: 0.3rem 0 0.6rem; }
+    .post-conteudo-mod { color: var(--muted); font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; }
+    .mod-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo"><span>⚡</span><span>SkyFit Speedrunning</span></a>
+  <div class="nav-links">
+    <a href="index.html">Rankings</a>
+    <a href="forum.html">Fórum</a>
+    <a href="moderacao.html" class="active" style="color:var(--gold)">⚙ Moderação</a>
+    <div id="nav-auth" style="display:flex;gap:0.5rem;align-items:center"></div>
+  </div>
+</nav>
+
+<div class="hero" style="padding:3rem 2rem 2rem">
+  <h1>Painel de Moderação</h1>
+  <p>Gerencie runs pendentes e posts do fórum</p>
+</div>
+
+<main>
+  <div class="mod-tabs">
+    <button class="mod-tab active" onclick="switchTab('runs')">🏃 Runs Pendentes <span id="badge-runs"></span></button>
+    <button class="mod-tab" onclick="switchTab('posts')">💬 Posts do Fórum</button>
+  </div>
+
+  <div id="sec-runs" class="mod-section active"></div>
+  <div id="sec-posts" class="mod-section"></div>
+</main>
+
+<footer>
+  <p>© 2025 <strong>Super Fun Guy Studios</strong> & <strong>SkyFit Speedrunning</strong> — Todos os direitos reservados</p>
+</footer>
+
+<script src="auth.js"></script>
+<script src="script.js"></script>
+<script>
+  const sessao = getSessao();
+  if (!sessao || sessao.role !== "mod") location.href = "index.html";
+  renderNav();
+
+  function switchTab(tab) {
+    document.querySelectorAll(".mod-tab").forEach((b, i) => b.classList.toggle("active", (i === 0) === (tab === "runs")));
+    document.getElementById("sec-runs").classList.toggle("active", tab === "runs");
+    document.getElementById("sec-posts").classList.toggle("active", tab === "posts");
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  function renderRuns() {
+    const pendentes = getRuns().filter(r => r.status === "pendente");
+    const badge = document.getElementById("badge-runs");
+    badge.textContent = pendentes.length ? `(${pendentes.length})` : "";
+
+    const sec = document.getElementById("sec-runs");
+    if (!pendentes.length) {
+      sec.innerHTML = `<div class="empty-state">Nenhuma run pendente. ✅</div>`;
+      return;
+    }
+    sec.innerHTML = pendentes.map(r => {
+      const aparelho = aparelhos.find(a => a.id === r.aparelhoId);
+      const data = new Date(r.criadoEm).toLocaleDateString("pt-BR");
+      return `
+        <div class="run-card">
+          <div class="run-card-header">
+            <div>
+              <strong>${aparelho ? aparelho.icon + " " + aparelho.nome : r.aparelhoId}</strong>
+              <span class="badge badge-pendente" style="margin-left:8px">Pendente</span>
+            </div>
+          </div>
+          <div class="run-info">
+            <strong>Runner:</strong> ${escapeHtml(r.runner)}<br>
+            <strong>Categoria:</strong> ${escapeHtml(r.categoria)}<br>
+            <strong>Tempo:</strong> ${escapeHtml(r.tempo)}<br>
+            <strong>Prova/Link:</strong> ${escapeHtml(r.prova)}<br>
+            <strong>Enviado em:</strong> ${data}
+          </div>
+          <div class="run-actions">
+            <button class="btn-aprovar" onclick="acao('aprovar','${r.id}')">✔ Aprovar</button>
+            <button class="btn-rejeitar" onclick="acao('rejeitar','${r.id}')">✘ Rejeitar</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderPosts() {
+    const posts = getPosts();
+    const sec = document.getElementById("sec-posts");
+    if (!posts.length) {
+      sec.innerHTML = `<div class="empty-state">Nenhum post no fórum.</div>`;
+      return;
+    }
+    sec.innerHTML = posts.map(p => {
+      const data = new Date(p.criadoEm).toLocaleDateString("pt-BR");
+      return `
+        <div class="post-card-mod">
+          <div class="mod-header">
+            <strong>${escapeHtml(p.titulo)}</strong>
+            <button class="btn-delete-mod" onclick="removerPost('${p.id}')">🗑 Deletar</button>
+          </div>
+          <div class="post-meta-mod">por ${escapeHtml(p.autor)} · ${data}</div>
+          <div class="post-conteudo-mod">${escapeHtml(p.conteudo)}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function acao(tipo, id) {
+    if (tipo === "aprovar") aprovarRun(id);
+    else if (confirm("Rejeitar e deletar esta run?")) rejeitarRun(id);
+    else return;
+    renderRuns();
+  }
+
+  function removerPost(id) {
+    if (!confirm("Deletar este post?")) return;
+    deletarPost(id);
+    renderPosts();
+  }
+
+  renderRuns();
+  renderPosts();
+</script>
+</body>
+</html>
