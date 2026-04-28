@@ -62,12 +62,9 @@
 
 <main>
   <div class="mod-tabs">
-    <button class="mod-tab active" onclick="switchTab('runs')">🏃 Runs Pendentes <span id="badge-runs"></span></button>
-    <button class="mod-tab" onclick="switchTab('rankings')">🏆 Rankings Propostos <span id="badge-rankings"></span></button>
+    <button class="mod-tab active">🏃 Runs Pendentes <span id="badge-runs"></span></button>
   </div>
-
   <div id="sec-runs" class="mod-section active"></div>
-  <div id="sec-rankings" class="mod-section"></div>
 </main>
 
 <footer>
@@ -82,9 +79,7 @@
   renderNav();
 
   function switchTab(tab) {
-    document.querySelectorAll(".mod-tab").forEach((b, i) => b.classList.toggle("active", (i === 0) === (tab === "runs")));
-    document.getElementById("sec-runs").classList.toggle("active", tab === "runs");
-    document.getElementById("sec-rankings").classList.toggle("active", tab === "rankings");
+    document.getElementById("sec-runs").classList.add("active");
   }
 
   function escapeHtml(str) {
@@ -128,41 +123,6 @@
     }).join("");
   }
 
-  function renderRankingsProp() {
-    const lista = getRankingsProposto();
-    const badge = document.getElementById("badge-rankings");
-    badge.textContent = lista.length ? `(${lista.length})` : "";
-    const sec = document.getElementById("sec-rankings");
-    if (!lista.length) { sec.innerHTML = `<div class="empty-state">Nenhum ranking proposto. ✅</div>`; return; }
-    sec.innerHTML = lista.map(r => {
-      const data = new Date(r.criadoEm).toLocaleDateString("pt-BR");
-      return `
-        <div class="run-card">
-          <div class="run-card-header">
-            <div><strong>${escapeHtml(r.icon)} ${escapeHtml(r.nome)}</strong></div>
-          </div>
-          <div class="run-info">
-            <strong>Proposto por:</strong> ${escapeHtml(r.autor)}<br>
-            <strong>Categorias:</strong> ${r.categorias.map(escapeHtml).join(", ")}<br>
-            <strong>Descrição:</strong> ${escapeHtml(r.descricao || "—")}<br>
-            <strong>Data:</strong> ${data}
-          </div>
-          <div class="run-actions">
-            <button class="btn-aprovar" onclick="acaoRanking('aprovar','${r.id}')">✔ Aprovar</button>
-            <button class="btn-rejeitar" onclick="acaoRanking('rejeitar','${r.id}')">✘ Rejeitar</button>
-          </div>
-        </div>
-      `;
-    }).join("");
-  }
-
-  function acaoRanking(tipo, id) {
-    if (tipo === "aprovar") aprovarRankingProposto(id);
-    else if (confirm("Rejeitar esta proposta?")) rejeitarRankingProposto(id);
-    else return;
-    renderRankingsProp();
-  }
-
   function acao(tipo, id) {
     if (tipo === "aprovar") aprovarRun(id);
     else if (confirm("Rejeitar e deletar esta run?")) rejeitarRun(id);
@@ -171,7 +131,6 @@
   }
 
   renderRuns();
-  renderRankingsProp();
 </script>
 </body>
 </html>

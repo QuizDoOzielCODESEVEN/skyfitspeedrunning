@@ -100,34 +100,11 @@
 </div>
 
 <main>
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.8rem">
-    <div class="section-title" style="margin-bottom:0">🏆 Rankings</div>
-    <div id="btn-criar-area"></div>
-  </div>
-
+  <div class="section-title">🏆 Rankings</div>
   <div id="rankings-container"></div>
 </main>
 
-<!-- Modal criar ranking -->
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal">
-    <h2>Propor novo Ranking</h2>
-    <p>Sua proposta será analisada pelo moderador antes de aparecer no site.</p>
-    <label>Nome do aparelho / atividade</label>
-    <input type="text" id="m-nome" placeholder="Ex: Bicicleta Ergométrica" maxlength="50">
-    <label>Emoji / ícone</label>
-    <input type="text" id="m-icon" placeholder="Ex: 🚴" maxlength="4">
-    <label>Categorias <small style="color:var(--muted)">(separadas por vírgula)</small></label>
-    <input type="text" id="m-cats" placeholder="Ex: 5km, 10km, 20min Max">
-    <label>Descrição / justificativa</label>
-    <textarea id="m-desc" rows="3" placeholder="Por que este ranking deve existir?"></textarea>
-    <div class="msg-modal" id="msg-modal"></div>
-    <div class="modal-actions">
-      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-criar" onclick="enviarProposta()">Enviar proposta</button>
-    </div>
-  </div>
-</div>
+
 
 <footer>
   <p>© 2025 <strong>Super Fun Guy Studios</strong> & <strong>SkyFit Speedrunning</strong> — Todos os direitos reservados</p>
@@ -138,18 +115,8 @@
 <script src="script.js"></script>
 <script>
   renderNav();
-  const sessao = getSessao();
 
-  // Botão criar ranking (só para logados)
-  const btnArea = document.getElementById("btn-criar-area");
-  if (sessao) {
-    btnArea.innerHTML = `<button class="btn-criar" onclick="abrirModal()">+ Propor Ranking</button>`;
-  }
-
-  // Pesquisa
-  function todosAparelhos() {
-    return [...aparelhos, ...getAparelhosExtras()];
-  }
+  function todosAparelhos() { return aparelhos; }
 
   function pesquisar(q) {
     const res = document.getElementById("pesquisa-resultados");
@@ -180,39 +147,18 @@
       document.getElementById("pesquisa-resultados").style.display = "none";
   });
 
-  // Renderiza rankings
   function renderRankings() {
     const todos = todosAparelhos();
     const container = document.getElementById("rankings-container");
-
     if (!todos.length) {
       container.innerHTML = `<p style="color:var(--muted)">Nenhum ranking disponível ainda.</p>`;
       return;
     }
-
     container.innerHTML = todos.map(a => {
-      const runs = getRunsAprovadasPorAparelho(a.id);
+      const runs = getRankingAparelho(a.id);
       const top3 = runs.slice(0, 3);
-      const lbHtml = top3.length ? `
-        <div class="leaderboard">
-          <div class="lb-header">
-            <span>Pos</span><span>Runner</span><span>Tempo</span><span>Categoria</span><span>Data</span>
-          </div>
-          ${top3.map(r => `
-            <div class="lb-row">
-              <span class="rank ${rankClass(r.pos)}">${rankEmoji(r.pos)}</span>
-              <span class="runner-name">${r.runner}</span>
-              <span class="time">${r.tempo}</span>
-              <span class="platform">${r.categoria}</span>
-              <span class="date">${new Date(r.criadoEm).toLocaleDateString("pt-BR")}</span>
-            </div>
-          `).join("")}
-        </div>
-      ` : `<div class="empty-lb">Nenhuma run aprovada ainda. Seja o primeiro! 🚀</div>`;
-
       const verMais = runs.length > 3
         ? `<a href="aparelhos/${a.id}.html" class="btn-ver-mais">Ver todos (${runs.length})</a>` : "";
-
       return `
         <div class="ranking-section">
           <div class="ranking-section-header">
@@ -222,49 +168,17 @@
               <a href="aparelhos/${a.id}.html" class="btn-ver-mais">Submeter run →</a>
             </div>
           </div>
-          ${lbHtml}
+          ${buildLeaderboard(top3)}
         </div>
       `;
     }).join("");
 
-    // Stats
-    const todasRuns = todos.flatMap(a => getRunsAprovadasPorAparelho(a.id));
+    const todasRuns = todos.flatMap(a => getRankingAparelho(a.id));
     const runners = new Set(todasRuns.map(r => r.runner));
     document.getElementById("total-runs").textContent = todasRuns.length;
     document.getElementById("total-aparelhos").textContent = todos.length;
     document.getElementById("total-runners").textContent = runners.size;
   }
-
-  // Modal
-  function abrirModal() { document.getElementById("modal-overlay").classList.add("open"); }
-  function fecharModal() {
-    document.getElementById("modal-overlay").classList.remove("open");
-    document.getElementById("msg-modal").className = "msg-modal";
-  }
-
-  function enviarProposta() {
-    const nome = document.getElementById("m-nome").value;
-    const icon = document.getElementById("m-icon").value;
-    const cats = document.getElementById("m-cats").value;
-    const desc = document.getElementById("m-desc").value;
-    const msg = document.getElementById("msg-modal");
-    const res = proporRanking(nome, icon, cats, desc);
-    if (!res.ok) {
-      msg.textContent = res.msg;
-      msg.className = "msg-modal erro";
-    } else {
-      msg.textContent = "Proposta enviada! O moderador irá analisar em breve.";
-      msg.className = "msg-modal ok";
-      document.getElementById("m-nome").value = "";
-      document.getElementById("m-icon").value = "";
-      document.getElementById("m-cats").value = "";
-      document.getElementById("m-desc").value = "";
-    }
-  }
-
-  document.getElementById("modal-overlay").addEventListener("click", e => {
-    if (e.target === document.getElementById("modal-overlay")) fecharModal();
-  });
 
   renderRankings();
 </script>

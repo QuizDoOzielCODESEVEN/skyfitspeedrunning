@@ -1,16 +1,33 @@
+// ═══════════════════════════════════════════════════════════════
+//  APARELHOS — adicione novos aparelhos aqui
+//  Campos: id (sem espaços), nome, icon (emoji), categorias
+// ═══════════════════════════════════════════════════════════════
 const aparelhos = [
   { id: "esteira", nome: "Esteira", icon: "🏃", categorias: ["1km", "5km", "10min Max"] }
 ];
 
-// Adicione runs aqui quando necessário: { pos, nome, tempo, data, plataforma }
+// ═══════════════════════════════════════════════════════════════
+//  RANKINGS — adicione runs aprovadas aqui
+//  Campos: runner (nome exato), tempo, categoria, data (DD/MM/AAAA)
+//
+//  Exemplo:
+//  esteira: [
+//    { runner: "NomeDoJogador", tempo: "3:42.10", categoria: "1km", data: "01/06/2025" },
+//  ]
+// ═══════════════════════════════════════════════════════════════
 const rankings = {
   esteira: []
 };
 
+// ═══════════════════════════════════════════════════════════════
+//  TÉCNICAS — adicione técnicas por aparelho aqui
+//  Campos: nome, desc, tag
+// ═══════════════════════════════════════════════════════════════
 const tecnicas = {
   esteira: []
 };
 
+// ── Funções internas ──────────────────────────────────────────
 function rankClass(pos) {
   if (pos === 1) return "gold";
   if (pos === 2) return "silver";
@@ -25,7 +42,12 @@ function rankEmoji(pos) {
   return `#${pos}`;
 }
 
+function getRankingAparelho(id) {
+  return (rankings[id] || []).map((r, i) => ({ ...r, pos: i + 1 }));
+}
+
 function buildLeaderboard(rows) {
+  if (!rows.length) return `<div class="empty-lb">Nenhuma run ainda. Seja o primeiro! 🚀</div>`;
   return `
     <div class="leaderboard">
       <div class="lb-header">
@@ -37,7 +59,7 @@ function buildLeaderboard(rows) {
           <span class="runner-name">${r.runner}</span>
           <span class="time">${r.tempo}</span>
           <span class="platform">${r.categoria}</span>
-          <span class="date">${new Date(r.criadoEm).toLocaleDateString("pt-BR")}</span>
+          <span class="date">${r.data}</span>
         </div>
       `).join("")}
     </div>
@@ -45,6 +67,7 @@ function buildLeaderboard(rows) {
 }
 
 function buildTecnicas(lista) {
+  if (!lista.length) return `<p style="color:var(--muted);padding:1rem">Nenhuma técnica documentada ainda.</p>`;
   return lista.map(t => `
     <div class="tecnica-card">
       <h3>${t.nome}</h3>
@@ -54,7 +77,6 @@ function buildTecnicas(lista) {
   `).join("");
 }
 
-// Tabs
 function initTabs() {
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -70,6 +92,7 @@ function initTabs() {
 window.aparelhos = aparelhos;
 window.rankings = rankings;
 window.tecnicas = tecnicas;
+window.getRankingAparelho = getRankingAparelho;
 window.buildLeaderboard = buildLeaderboard;
 window.buildTecnicas = buildTecnicas;
 window.initTabs = initTabs;
