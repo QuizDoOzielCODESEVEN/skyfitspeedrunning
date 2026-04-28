@@ -29,15 +29,15 @@ function buildLeaderboard(rows) {
   return `
     <div class="leaderboard">
       <div class="lb-header">
-        <span>Pos</span><span>Runner</span><span>Tempo</span><span>Data</span><span>Plataforma</span>
+        <span>Pos</span><span>Runner</span><span>Tempo</span><span>Categoria</span><span>Data</span>
       </div>
       ${rows.map(r => `
         <div class="lb-row">
           <span class="rank ${rankClass(r.pos)}">${rankEmoji(r.pos)}</span>
-          <span class="runner-name">${r.nome}</span>
+          <span class="runner-name">${r.runner}</span>
           <span class="time">${r.tempo}</span>
-          <span class="date">${r.data}</span>
-          <span class="platform">${r.plataforma}</span>
+          <span class="platform">${r.categoria}</span>
+          <span class="date">${new Date(r.criadoEm).toLocaleDateString("pt-BR")}</span>
         </div>
       `).join("")}
     </div>
